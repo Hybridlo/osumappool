@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QThreadPool, QObject, QRunnable, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QThreadPool, QObject, QRunnable, QTimer, pyqtSignal, pyqtSlot
 from .layout import ApikeyPromptUI
 import urllib.request
 
@@ -31,10 +31,10 @@ class ApikeyPrompt(QtWidgets.QMainWindow, ApikeyPromptUI.Ui_Form):
 
     def check_api_key(self):
         self.pushButton.setEnabled(False)
-        key = self.lineEdit.text()
+        self.key = self.lineEdit.text()
         self.label_3.setText("Checking the api key...")
         
-        worker = Worker(key)
+        worker = Worker(self.key)
         worker.signals.result.connect(self.key_check_finished)
 
         self.threadpool.start(worker)
@@ -47,10 +47,23 @@ class ApikeyPrompt(QtWidgets.QMainWindow, ApikeyPromptUI.Ui_Form):
 
     def key_check_failed(self):
         self.pushButton.setEnabled(True)
-        self.label_3.setText("Api key check failed, please enter valid api key.")
+        self.label_3.setText("Api key check failed, please enter valid api key or check your internet connection.")
 
     def key_check_success(self):
-        self.label_3.setText("Api key check success.")
+        self.label_3.setText("Api key check success. Saving...")
+
+        with open("mykey.apikey", "w") as outfile:
+            outfile.write(self.key)
+        
+        self.timer = QTimer()
+        self.timer.setInterval(2000)
+        self.timer.timeout.connect(self.finish)
+        self.timer.start()
+
+    def finish(self):
+        self.close()
+        self.timer.stop()
+        print("Quit")
 
 def prompt_apikey():
     app = QtWidgets.QApplication([])
