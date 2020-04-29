@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThreadPool, QObject, QRunnable, QTimer, pyqtSignal, pyqtSlot
 from .layout import ApikeyPromptUI
-import urllib.request
+from .misc.ApiCalls import get_beatmap
 
 class WorkerSignals(QObject):
     result = pyqtSignal(bool)
@@ -14,9 +14,9 @@ class Worker(QRunnable):
     
     @pyqtSlot()
     def run(self):
-        url = f"https://osu.ppy.sh/api/get_beatmaps?k={self.key}&b=2156070"
+        test_beatmap_id = 2156070
         try:
-            response = urllib.request.urlopen(url)
+            get_beatmap(self.key, test_beatmap_id)
         except:
             self.signals.result.emit(False)
         else:
